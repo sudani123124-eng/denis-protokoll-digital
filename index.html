@@ -3,116 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Denis Protokoll</title>
-
-<!-- PDF LIBRARY -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<title>Denis Protokoll - Professional</title>
+<!-- Google Fonts & Signature Pad -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
 
 <style>
-body {
-    font-family: Arial;
-    background: #f5f5f5;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red: #E8394A; --red2: #ff6b7a; --green: #4cba6b;
+  --bg: #f5f0eb; --card: #ffffff; --border: #E2E5EC;
+  --text: #141518; --muted: #8890A0; --row-hover: #fff8f8;
 }
 
-/* PRINT FIX النهائي */
+/* ── DARK MODE ── */
+body.dark-mode { --bg:#1a1a1a; --card:#2d2d2d; --border:#444; --text:#e0e0e0; --muted:#888; --row-hover:#3a2a2a; }
+body.dark-mode .cell { background: #333 !important; }
+body.dark-mode .card-header { background: linear-gradient(135deg,#1a2a3a,#0d1a26) !important; }
+body.dark-mode .notiz-select, body.dark-mode .time-input-direct, body.dark-mode .notiz-free { background: #3a3a3a !important; color: var(--text) !important; border-color: #555 !important; }
+
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; padding: 24px 16px 60px; }
+body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(circle at 1px 1px, #d4cdc6 1px, transparent 0); background-size: 28px 28px; opacity: 0.5; pointer-events: none; z-index: 0; }
+
+/* ── UI ELEMENTS ── */
+.toolbar { position: relative; z-index: 2; max-width: 900px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: space-between; }
+.btn { padding: 9px 20px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.18s; }
+.btn-red { background: var(--red); color: white; box-shadow: 0 4px 12px rgba(232,57,74,0.35); }
+.btn-ghost { background: white; color: #555; border: 1.5px solid var(--border); }
+
+.card { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; background: var(--card); border-radius: 24px; box-shadow: 0 8px 40px rgba(0,0,0,0.09); overflow: hidden; }
+
+/* ── HEADER ── */
+.card-header { background: linear-gradient(135deg, #4a6080 0%, #3d5268 100%); padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header-title { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 800; color: white; }
+.header-title span { color: #ffb3b9; }
+.meta-field-input { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: white; background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.18); border-radius: 7px; padding: 4px 8px; width: 130px; }
+
+/* ── PROTOCOL ROWS ── */
+.col-headers { display: grid; grid-template-columns: 120px 70px 70px 1fr; gap: 6px; padding: 8px 14px 6px; }
+.col-tag { border-radius: 6px; padding: 4px 0; font-size: 10px; font-weight: 700; text-align: center; background: #F0F1F4; color: #666; }
+.rows-wrap { display: flex; flex-direction: column; padding: 0 14px 6px; }
+.proto-row { display: grid; grid-template-columns: 120px 70px 70px 1fr; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.cell { border: 1.5px solid var(--border); border-radius: 10px; background: white; padding: 5px; min-height: 46px; display: flex; align-items: center; justify-content: center; }
+
+/* ── SIGNATURE SYSTEM ── */
+.sig-section { margin: 10px 14px; padding-top: 12px; border-top: 1.5px solid var(--border); }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.sig-canvas-wrap { border: 1.5px solid var(--border); border-radius: 10px; background: white; overflow: hidden; margin-top: 5px; }
+.sig-canvas-wrap canvas { width: 100%; height: 90px; display: block; touch-action: none; }
+.sig-label { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.sig-clear { font-size: 9px; background: none; border: 1px dashed var(--border); border-radius: 5px; padding: 2px 5px; cursor: pointer; margin-top: 4px; }
+
+/* ── PRINT SETTINGS (YOUR UPDATED VERSION) ── */
 @media print {
-    @page {
-        margin: 0;
-    }
-    body {
-        background: white !important;
-        padding: 1.5cm !important;
-        margin: 0;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+    @page { margin: 0; }
+    body { background: white !important; padding: 1.2cm !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body::before { display: none !important; }
+    
+    .card, .proto-row, .sig-section { break-inside: avoid !important; page-break-inside: avoid !important; }
+    .card-header { position: sticky; top: 0; z-index: 999; }
+    
+    .toolbar, .add-zone, .no-print, .time-now-btn, .bottom-actions, .kunde-back, .progress-wrap, .live-clock, .sig-clear { display: none !important; }
+    
+    .card { box-shadow: none !important; border-radius: 0 !important; width: 100% !important; max-width: 100% !important; }
+    .card-header { padding: 10px 14px 6px !important; }
+    .header-title { font-size: 17px !important; }
+    .col-headers { padding: 6px 12px 3px !important; }
+    .col-tag { font-size: 9px !important; }
+    .rows-wrap { padding: 0 12px 4px !important; }
+    .proto-row { gap: 5px !important; padding: 3px 0 !important; }
+    .cell { min-height: 34px !important; padding: 4px !important; border-radius: 6px !important; }
+    .time-input-direct { border: none !important; background: transparent !important; font-weight: 700 !important; }
+    .notiz-select { font-size: 9px !important; }
+    .notiz-free { font-size: 8px !important; }
+    .nc-btn { display: none !important; }
+    .sig-section { margin-top: 15px !important; break-before: auto; } /* تم التعديل لعدم إجبار صفحة جديدة إلا للضرورة */
+    .sig-canvas-wrap canvas { height: 65px !important; }
+    .card-footer { padding: 6px 12px !important; }
 }
 </style>
 </head>
-
 <body>
 
-<div id="report" style="background:white;padding:20px;border-radius:10px">
+<div class="toolbar no-print">
+  <div class="header-title" style="color:var(--muted)">Denis <span>Protokoll</span></div>
+  <div class="toolbar-right">
+    <button class="btn btn-ghost" onclick="toggleDark()">🌙</button>
+    <button class="btn btn-red" onclick="window.print()">🖨 PDF Speichern</button>
+  </div>
+</div>
 
-<h2>Denis Protokoll</h2>
+<div class="card">
+  <div class="card-header">
+    <div class="header-left">
+      <div class="header-title">Denis <span>Protokoll</span></div>
+    </div>
+    <div class="header-right" style="display:flex; gap:10px;">
+      <input class="meta-field-input" type="text" id="mitarbeiterName" placeholder="Mitarbeiter Name">
+      <input class="meta-field-input" type="date" id="dateInput">
+    </div>
+  </div>
 
-<label>اسم الموظف:</label>
-<input type="text" id="name"><br><br>
+  <div class="col-headers">
+    <div class="col-tag">Kunde</div>
+    <div class="col-tag">Beginn</div>
+    <div class="col-tag">Ende</div>
+    <div class="col-tag">Notiz</div>
+  </div>
 
-<label>ملاحظات:</label><br>
-<textarea id="notes" rows="4" style="width:100%"></textarea><br><br>
+  <div class="rows-wrap" id="rowsWrap">
+    <!-- Rows will be injected here -->
+  </div>
 
-<!-- 📸 رفع صور -->
-<input type="file" id="imageInput" accept="image/*" multiple>
-<div id="images"></div>
+  <div class="sig-section">
+    <div class="sig-grid">
+      <div class="sig-box">
+        <div class="sig-label">Unterschrift Mitarbeiter</div>
+        <div class="sig-canvas-wrap"><canvas id="sig1"></canvas></div>
+        <button class="sig-clear no-print" onclick="sigPad1.clear()">🗑 Löschen</button>
+      </div>
+      <div class="sig-box">
+        <div class="sig-label">Unterschrift Vorgesetzter</div>
+        <div class="sig-canvas-wrap"><canvas id="sig2"></canvas></div>
+        <button class="sig-clear no-print" onclick="sigPad2.clear()">🗑 Löschen</button>
+      </div>
+    </div>
+  </div>
 
-<br>
-
-<!-- ✍️ توقيع -->
-<canvas id="signature" style="border:1px solid #000;width:100%;height:150px"></canvas>
-<br>
-<button onclick="clearSignature()">مسح التوقيع</button>
-
-<br><br>
-
-<!-- أزرار -->
-<button onclick="downloadPDF()">📄 تحميل PDF مباشر</button>
-<button onclick="window.print()">🖨 طباعة عادية</button>
-
+  <div class="card-footer" style="padding: 15px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); text-align: center;">
+    Denis Protokoll v3.0 - Security Report System
+  </div>
 </div>
 
 <script>
-/* ✍️ التوقيع */
-const canvas = document.getElementById('signature');
-const ctx = canvas.getContext('2d');
-
-let drawing = false;
-
-canvas.addEventListener('mousedown', () => drawing = true);
-canvas.addEventListener('mouseup', () => drawing = false);
-canvas.addEventListener('mousemove', draw);
-
-function draw(e) {
-    if (!drawing) return;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
+// تفعيل لوحات التوقيع
+let sigPad1, sigPad2;
+function initSignatures() {
+  const c1 = document.getElementById('sig1');
+  const c2 = document.getElementById('sig2');
+  sigPad1 = new SignaturePad(c1);
+  sigPad2 = new SignaturePad(c2);
+  
+  // وظيفة لتعديل حجم الكانفاس ليتناسب مع الموبايل والكمبيوتر
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
 }
 
-function clearSignature() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+function resizeCanvas() {
+  [sigPad1, sigPad2].forEach(pad => {
+    const canvas = pad._canvas;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext("2d").scale(ratio, ratio);
+    pad.clear(); 
+  });
 }
 
-/* 📸 عرض الصور */
-document.getElementById('imageInput').addEventListener('change', function(e){
-    const container = document.getElementById('images');
-    container.innerHTML = "";
-
-    Array.from(e.target.files).forEach(file=>{
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        img.style.width = "100px";
-        img.style.margin = "5px";
-        container.appendChild(img);
-    });
-});
-
-/* 📄 PDF مباشر بدون نافذة */
-function downloadPDF() {
-    const element = document.getElementById('report');
-
-    const opt = {
-        margin: 0,
-        filename: 'protokoll.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
+function toggleDark() {
+  document.body.classList.toggle('dark-mode');
 }
+
+// تشغيل عند التحميل
+window.onload = () => {
+  initSignatures();
+  // إضافة صف تجريبي
+  document.getElementById('rowsWrap').innerHTML += `
+    <div class="proto-row">
+      <div class="cell">Musterkunde</div>
+      <div class="cell"><input type="time" class="time-input-direct" value="20:00"></div>
+      <div class="cell"><input type="time" class="time-input-direct" value="21:00"></div>
+      <div class="cell" style="font-size:11px;">Kontrollgang ohne Vorkommnisse.</div>
+    </div>
+  `;
+};
 </script>
-
 </body>
 </html>
